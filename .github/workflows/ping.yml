@@ -1,5 +1,6 @@
 name: ping
-# Keeps a free-hosted site awake: every 5 minutes, ping it 3 times, 2 minutes apart.
+# Keeps a free-hosted site awake: pings it every 2 minutes for ~28 minutes per run.
+# GitHub starts scheduled runs only every ~5-25 minutes, so each run covers the gap.
 on:
   schedule:
     - cron: '*/5 * * * *'
@@ -10,10 +11,11 @@ concurrency:
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 32
     steps:
       - run: |
-          for i in 1 2 3; do
-            curl -fsS -m 60 --retry 2 -o /dev/null -w "%{http_code}\n" https://vpn.hbsim.com/healthz || true
-            [ "$i" -lt 3 ] && sleep 115
+          for i in $(seq 1 14); do
+            curl -sS -m 60 --retry 2 -o /dev/null -w "%{http_code}\n" https://vpn.hbsim.com/healthz || true
+            sleep 115
           done
+          exit 0
